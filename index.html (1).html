@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>os11amigosfofoqueiros - Login</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: linear-gradient(to right, #f0f8ff, #cceeff);
+      padding: 0;
+      margin: 0;
+    }
+    .container {
+      max-width: 600px;
+      margin: 50px auto;
+      padding: 20px;
+      background: #ffffff;
+      border-radius: 15px;
+      box-shadow: 0 0 15px rgba(0,0,0,0.2);
+    }
+    input, button, select, textarea {
+      width: 100%;
+      margin: 10px 0;
+      padding: 10px;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+      font-size: 16px;
+    }
+    button {
+      background-color: #03a9f4;
+      color: white;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #0288d1;
+    }
+    .hidden {
+      display: none;
+    }
+    .header {
+      background: linear-gradient(to right, #03a9f4, #00bcd4);
+      color: white;
+      padding: 10px;
+      text-align: center;
+      border-radius: 10px 10px 0 0;
+      font-size: 20px;
+    }
+    #logoutBtn {
+      background: #f44336;
+    }
+    #logoutBtn:hover {
+      background: #d32f2f;
+    }
+    ul {
+      background-color: #f9f9f9;
+      padding: 10px;
+      border-radius: 5px;
+    }
+    li {
+      margin-bottom: 5px;
+    }
+    nav {
+      display: flex;
+      justify-content: space-around;
+      margin-bottom: 20px;
+    }
+    nav button {
+      width: auto;
+      flex: 1;
+      margin: 0 5px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container" id="loginDiv">
+    <div class="header"><h2>os11amigosfofoqueiros</h2></div>
+    <input type="text" id="username" placeholder="Usuário">
+    <input type="password" id="password" placeholder="Senha">
+    <button onclick="login()">Entrar</button>
+  </div>
+
+  <div class="container hidden" id="adminPanel">
+    <div class="header">Painel do Admin</div>
+    <nav>
+      <button onclick="abrirPagina('advertenciasAdmin')">Advertências</button>
+      <button onclick="abrirPagina('tarefasAdmin')">Tarefas</button>
+      <button onclick="abrirPagina('chatAdmin')">Chat</button>
+      <button onclick="logout()">Sair</button>
+    </nav>
+
+    <div id="advertenciasAdmin" class="hidden">
+      <p>Enviar advertência para:</p>
+      <select id="userSelect">
+        <option value="Alexandre05">Alexandre05</option>
+        <option value="Miguel06">Miguel06</option>
+        <option value="Ana07">Ana07</option>
+        <option value="Filipe08">Filipe08</option>
+        <option value="Heverton000">Heverton000</option>
+      </select>
+      <textarea id="advertenciaMsg" placeholder="Mensagem da advertência"></textarea>
+      <button onclick="enviarAdvertencia()">Enviar Advertência</button>
+    </div>
+
+    <div id="tarefasAdmin" class="hidden">
+      <p>Criar tarefa:</p>
+      <textarea id="tarefaMsg" placeholder="Descrição da tarefa"></textarea>
+      <button onclick="criarTarefa()">Criar Tarefa</button>
+    </div>
+
+    <div id="chatAdmin" class="hidden">
+      <p>Mensagem para participantes:</p>
+      <textarea id="chatMsg" placeholder="Mensagem para participantes"></textarea>
+      <button onclick="enviarChat()">Enviar</button>
+    </div>
+  </div>
+
+  <div class="container hidden" id="userPanel">
+    <div class="header">Área do Participante</div>
+    <nav>
+      <button onclick="abrirPagina('advertenciasUser')">Advertências</button>
+      <button onclick="abrirPagina('tarefasUser')">Tarefas</button>
+      <button onclick="abrirPagina('chatUser')">Chat</button>
+      <button onclick="logout()">Sair</button>
+    </nav>
+
+    <div id="advertenciasUser" class="hidden">
+      <p><strong>Advertências recebidas:</strong></p>
+      <ul id="advertenciasList"></ul>
+    </div>
+
+    <div id="tarefasUser" class="hidden">
+      <p><strong>Tarefas:</strong></p>
+      <ul id="tarefasList"></ul>
+      <textarea id="respostaTarefa" placeholder="Responder tarefa atual..."></textarea>
+      <button onclick="responderTarefa()">Enviar Resposta</button>
+      <ul id="respostasList"></ul>
+    </div>
+
+    <div id="chatUser" class="hidden">
+      <p><strong>Cronograma de Brincadeiras:</strong></p>
+      <ul>
+        <li>Seg, Ter: Pega-pega Gelo</li>
+        <li>Qua, Qui: Pega-pega Corrente</li>
+        <li>Sex: Round 6</li>
+      </ul>
+      <p><strong>Cronograma dos Canais:</strong></p>
+      <ul>
+        <li>Seg, Ter: Sonic</li>
+        <li>Qua, Qui: Mundo do Torajo</li>
+        <li>Sex: Livre</li>
+      </ul>
+    </div>
+  </div>
+
+  <script>
+    const admins = {
+      "Joãovictorlíder01": "frontman001",
+      "Nicollasdavi02": "davi456",
+      "Joãomiguelcoordenador03": "coord010",
+      "Joãomiguelvicecoordenador04": "vice000"
+    };
+
+    const participantes = {
+      "Alexandre05": "alex099",
+      "Miguel06": "Liberato100",
+      "Ana07": "Vitória777",
+      "Filipe08": "888F",
+      "Heverton000": "heverton000"
+    };
+
+    const advertencias = {};
+    const tarefas = [];
+    const respostas = [];
+    let usuarioLogado = "";
+
+    function login() {
+      const user = document.getElementById("username").value;
+      const pass = document.getElementById("password").value;
+
+      if (admins[user] === pass) {
+        usuarioLogado = user;
+        document.getElementById("loginDiv").classList.add("hidden");
+        document.getElementById("adminPanel").classList.remove("hidden");
+        abrirPagina("advertenciasAdmin");
+      } else if (participantes[user] === pass) {
+        usuarioLogado = user;
+        document.getElementById("loginDiv").classList.add("hidden");
+        document.getElementById("userPanel").classList.remove("hidden");
+        atualizarAdvertencias(user);
+        atualizarTarefas();
+        atualizarRespostas();
+        abrirPagina("advertenciasUser");
+      } else {
+        alert("Usuário ou senha incorretos!");
+      }
+    }
+
+    function logout() {
+      usuarioLogado = "";
+      document.getElementById("loginDiv").classList.remove("hidden");
+      document.getElementById("adminPanel").classList.add("hidden");
+      document.getElementById("userPanel").classList.add("hidden");
+    }
+
+    function abrirPagina(id) {
+      const paginas = document.querySelectorAll(".container > div");
+      paginas.forEach(p => p.classList.add("hidden"));
+      document.getElementById(id).classList.remove("hidden");
+    }
+
+    function enviarAdvertencia() {
+      const user = document.getElementById("userSelect").value;
+      const msg = document.getElementById("advertenciaMsg").value;
+      if (!advertencias[user]) advertencias[user] = [];
+      advertencias[user].push(msg);
+      alert("Advertência enviada para " + user);
+    }
+
+    function criarTarefa() {
+      const tarefa = document.getElementById("tarefaMsg").value;
+      tarefas.push(tarefa);
+      alert("Tarefa criada!");
+      atualizarTarefas();
+    }
+
+    function enviarChat() {
+      const msg = document.getElementById("chatMsg").value;
+      alert("Mensagem enviada para os participantes: " + msg);
+    }
+
+    function atualizarAdvertencias(user) {
+      const lista = document.getElementById("advertenciasList");
+      lista.innerHTML = "";
+      (advertencias[user] || []).forEach((a) => {
+        const li = document.createElement("li");
+        li.textContent = a;
+        lista.appendChild(li);
+      });
+    }
+
+    function atualizarTarefas() {
+      const lista = document.getElementById("tarefasList");
+      lista.innerHTML = "";
+      tarefas.forEach((t) => {
+        const li = document.createElement("li");
+        li.textContent = t;
+        lista.appendChild(li);
+      });
+    }
+
+    function responderTarefa() {
+      const resposta = document.getElementById("respostaTarefa").value;
+      if (resposta.trim() !== "") {
+        respostas.push(`${usuarioLogado}: ${resposta}`);
+        atualizarRespostas();
+        document.getElementById("respostaTarefa").value = "";
+      }
+    }
+
+    function atualizarRespostas() {
+      const lista = document.getElementById("respostasList");
+      if (!lista) return;
+      lista.innerHTML = "";
+      respostas.forEach((r) => {
+        const li = document.createElement("li");
+        li.textContent = r;
+        lista.appendChild(li);
+      });
+    }
+  </script>
+</body>
+</html>
